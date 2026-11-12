@@ -203,7 +203,8 @@ async function loadHistory(){
   const heading=document.createElement('p');heading.style.fontWeight='700';
   heading.textContent=sessionsByPath.size?`${sessionsByPath.size} sesión(es) encontradas en Firebase.`:'No se encontraron sesiones con las consultas realizadas. Esto no confirma que no existan registros.';
   out.append(heading);
-  const meta=document.createElement('p');meta.textContent=`Perfiles devueltos por la lista Alumnos: ${profileCount===null?'consulta no disponible':profileCount}. Perfiles identificados por lista o lectura directa: ${records.size}.`;out.append(meta);
+  const estudiantesConSesiones=new Set([...sessionsByPath.values()].map(s=>s.ref.parent.parent?.id).filter(Boolean)).size;
+  const meta=document.createElement('p');meta.textContent=`Estudiantes con sesiones recuperadas: ${estudiantesConSesiones}. Perfiles devueltos por la consulta a Alumnos: ${profileCount===null?'consulta no disponible':profileCount}. Perfiles leídos por separado: ${records.size}.`;out.append(meta);
   const sorted=[...sessionsByPath.values()].sort((a,b)=>{
    const ta=a.data().fecha?.toMillis?.()||0,tb=b.data().fecha?.toMillis?.()||0;return tb-ta;
   });
