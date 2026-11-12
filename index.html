@@ -208,6 +208,7 @@ async function loadHistory(){
   const sorted=[...sessionsByPath.values()].sort((a,b)=>{
    const ta=a.data().fecha?.toMillis?.()||0,tb=b.data().fecha?.toMillis?.()||0;return tb-ta;
   });
+  renderAnalytics(out,sorted);
   for(const snap of sorted){
    const v=snap.data();const uid=snap.ref.parent.parent?.id||'';
    const data=records.get(uid)||{};
@@ -226,6 +227,110 @@ async function loadHistory(){
   const list=document.createElement('ul');notes.forEach(message=>{const li=document.createElement('li');li.textContent=message;list.append(li)});diagnostics.append(list);out.append(diagnostics);
  }catch(e){if(request===historyRequest)out.textContent='Error al cargar historial: '+(e.code||e.message);}
 }
+
+// Gráficas descriptivas: utilizan exclusivamente sesiones recuperadas del servidor.
+function renderAnalytics(out, snapshots){
+ const panel=document.createElement('section');
+ panel.style.cssText='margin:18px 0;padding:16px;border:1px solid #b9d7c7;border-radius:14px;background:#f7fcf9';
+ const heading=document.createElement('h3');heading.textContent='📊 Análisis del aprendizaje';panel.append(heading);
+ const intro=document.createElement('p');intro.className='small muted';
+ intro.textContent='Gráficas automáticas de intentos, pistas y evolución. Son indicadores descriptivos, no diagnósticos de funciones ejecutivas.';
+ panel.append(intro);
+ const grouped=new Map();
+ for(const snap of snapshots){
+  const uid=snap.ref.parent.parent?.id||'';
+  if(!uid)continue;
+  const v=snap.data();
+  if(!grouped.has(uid))grouped.set(uid,[]);
+  grouped.get(uid).push(v);
+ }
+ if(!grouped.size){const p=document.createElement('p');p.textContent='Todavía no hay sesiones recuperadas para graficar.';panel.append(p);out.append(panel);return;}
+ const selector=document.createElement('select');
+ selector.setAttribute('aria-label','Seleccionar estudiante para analizar');
+ for(const [uid,sessions] of grouped){
+  const v=sessions[0];
+  const opt=document.createElement('option');opt.value=uid;
+  opt.textContent=`Grupo ${v.grupo||'?'} · Lista ${v.numeroLista||'?'} (${sessions.length} sesión(es))`;
+  selector.append(opt);
+ }
+ panel.append(selector);
+ const charts=document.createElement('div');charts.style.marginTop='16px';panel.append(charts);
+ function el(tag,attrs={},textValue){
+  const n=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  Object.entries(attrs).forEach(([k,v])=>n.setAttribute(k,String(v)));
+  if(textValue!==undefined)n.textContent=String(textValue);
+  return n;
+ }
+ function chart(title,labels,series){
+  const wrap=document.createElement('div');wrap.style.cssText='margin:14px 0;padding:12px;background:white;border:1px solid #d8e4df;border-radius:12px';
+  const h=document.createElement('h4');h.textContent=title;wrap.append(h);
+  const width=700,height=260,left=52,right=18,top=26,bottom=58;
+  const svg=el('svg',{viewBox:`0 0 ${width} ${height}`,role:'img','aria-label':title,style:'width:100%;height:auto;max-height:320px'});
+  const values=series.flatMap(x=>x.values);
+  const max=Math.max(1,...values);
+  const ceiling=Math.max(1,Math.ceil(max));
+  const pw=width-left-right,ph=height-top-bottom;
+  for(let tick=0;tick<=4;tick++){
+   const value=ceiling*tick/4,y=top+ph-(tick/4)*ph;
+   svg.append(el('line',{x1:left,y1:y,x2:width-right,y2:y,stroke:'#e0ebe5'}));
+   svg.append(el('text',{x:left-8,y:y+4,'text-anchor':'end','font-size':12,fill:'#466255'},Number.isInteger(value)?value:value.toFixed(1)));
+  }
+  const n=Math.max(1,labels.length),groupW=pw/n,barW=Math.min(36,groupW/(series.length+1));
+  const colors=['#176b57','#e4a72b'];
+  labels.forEach((label,i)=>{
+   const x=left+(i+.5)*groupW;
+   svg.append(el('text',{x,y:height-32,'text-anchor':'middle','font-size':Math.min(12,Math.max(9,650/n)),fill:'#1b302b'},label));
+   series.forEach((ser,j)=>{
+    const v=Number(ser.values[i])||0;
+    const bh=v/ceiling*ph;
+    const bx=x-(series.length*barW)/2+j*barW;
+    svg.append(el('rect',{x:bx,y:top+ph-bh,width:barW-3,height:bh,rx:3,fill:colors[j%colors.length]}));
+    svg.append(el('text',{x:bx+(barW-3)/2,y:top+ph-bh-5,'text-anchor':'middle','font-size':11,fill:'#1b302b'},v));
+   });
+  });
+  wrap.append(svg);
+  const legend=document.createElement('p');legend.className='small';
+  series.forEach((ser,i)=>{
+   const span=document.createElement('span');span.style.cssText=`display:inline-block;margin-right:16px;color:${colors[i%colors.length]};font-weight:700`;
+   span.textContent='■ '+ser.name;legend.append(span);
+  });wrap.append(legend);
+  const download=document.createElement('button');download.type='button';download.className='secondary';
+  download.textContent='Guardar gráfica como SVG';
+  download.onclick=()=>{
+   const content=new XMLSerializer().serializeToString(svg);
+   const blob=new Blob([content],{type:'image/svg+xml;charset=utf-8'});
+   const url=URL.createObjectURL(blob),a=document.createElement('a');
+   a.href=url;a.download='papeleria-'+title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-')+'.svg';
+   a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  };
+  wrap.append(download);charts.append(wrap);
+ }
+ function render(){
+  charts.replaceChildren();
+  const sessions=[...grouped.get(selector.value)].sort((a,b)=>(a.fecha?.toMillis?.()||0)-(b.fecha?.toMillis?.()||0));
+  const completed=sessions.filter(s=>s.estado==='finalizada'&&Array.isArray(s.retos)&&s.retos.length===5);
+  const notice=document.createElement('p');notice.className='small muted';
+  notice.textContent=`${sessions.length} sesión(es) recuperadas; ${completed.length} finalizada(s) con cinco retos. Las gráficas por reto usan la sesión finalizada más reciente.`;
+  charts.append(notice);
+  if(!completed.length){const p=document.createElement('p');p.textContent='Aún no hay una sesión completa de cinco retos para graficar.';charts.append(p);return;}
+  const latest=completed[completed.length-1];
+  const retos=[...latest.retos].sort((a,b)=>a.numero-b.numero);
+  chart('Intentos y pistas por reto',retos.map(r=>'Reto '+r.numero),[
+   {name:'Intentos',values:retos.map(r=>Number(r.intentos)||0)},
+   {name:'Pistas',values:retos.map(r=>Number(r.pistas)||0)}
+  ]);
+  chart('Selección de signos por reto',retos.map(r=>'Reto '+r.numero),[
+   {name:'Signos seleccionados',values:retos.map(r=>Array.isArray(r.signos)?r.signos.length:0)}
+  ]);
+  chart('Evolución entre sesiones',completed.map((_,i)=>'Sesión '+(i+1)),[
+   {name:'Intentos totales',values:completed.map(s=>s.retos.reduce((sum,r)=>sum+(Number(r.intentos)||0),0))},
+   {name:'Pistas totales',values:completed.map(s=>s.retos.reduce((sum,r)=>sum+(Number(r.pistas)||0),0))}
+  ]);
+  if(completed.length===1){const p=document.createElement('p');p.className='small muted';p.textContent='La evolución mostrará una tendencia cuando el estudiante complete más sesiones.';charts.append(p);}
+ }
+ selector.onchange=render;render();out.append(panel);
+}
+
 byId('refreshSessions').onclick=loadHistory;
 onAuthStateChanged(auth,next=>{void displayUser(next);},e=>{status('Error de autenticación: '+(e.code||e.message));});
 </script></body></html>
