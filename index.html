@@ -1,4 +1,3 @@
-```
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#176b57"><title>Papelería Digital · Versión 5</title>
 <style>
@@ -74,7 +73,7 @@ $('route').addEventListener('change',()=>{renderCart()});$('start').onclick=star
 <script type="module">
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js';
 import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js';
-import {getFirestore,collection,addDoc,updateDoc,getDocs,serverTimestamp} from 'https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js';
+import {getFirestore,collection,doc,addDoc,updateDoc,getDocsFromServer,getDocFromServer,serverTimestamp} from 'https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js';
 const firebaseConfig={apiKey:'AIzaSyA36PzVwed30aDC0KZQDefHJmT63GiOle4',authDomain:'mi-tiendita-digital-v4.firebaseapp.com',projectId:'mi-tiendita-digital-v4',storageBucket:'mi-tiendita-digital-v4.firebasestorage.app',messagingSenderId:'395051599416',appId:'1:395051599416:web:5a696e57464f4223e588cd'};
 const DOCENTE_UID='yhU8ZSQdGlPJweCv3ByoSnnfxL33';
 const DOMAIN='alumnos.example.com';
@@ -148,21 +147,60 @@ byId('loginButton').onclick=async()=>{
  finally{btn.disabled=false;}
 };
 byId('logoutButton').onclick=async()=>{if(sessionOpen){status('Termina los cinco retos antes de salir.');return;}await signOut(auth);};
+// El historial siempre consulta el servidor, no una copia local posiblemente vacía.
+// El alumno piloto sirve para comprobar la lectura directa si la lista no lo incluye.
+const PILOT_UID='hlEDXSPdoafuWVpsKeeFSO3WAGH2';
+let historyRequest=0;
 async function loadHistory(){
- const out=byId('sessionsList');out.textContent='Cargando historial…';
+ const request=++historyRequest;
+ const out=byId('sessionsList');out.textContent='Consultando registros directamente en Firebase…';
+ if(!auth.currentUser||auth.currentUser.uid!==DOCENTE_UID){out.textContent='Debes iniciar sesión con la cuenta docente autorizada.';return;}
  try{
-  const students=await getDocs(collection(db,'Alumnos'));out.replaceChildren();let count=0;
-  const sorted=students.docs.sort((a,b)=>a.data().grupo.localeCompare(b.data().grupo)||a.data().numeroLista.localeCompare(b.data().numeroLista));
-  for(const student of sorted){const data=student.data();
-   const sessions=await getDocs(collection(db,'Alumnos',student.id,'Sesiones'));
-   for(const snap of sessions.docs){count++;const v=snap.data();const details=document.createElement('details');const summary=document.createElement('summary');const when=v.fecha?.toDate?.()?.toLocaleString('es-MX')||'Fecha pendiente';summary.textContent=`Grupo ${data.grupo} · Lista ${data.numeroLista} · ${when} · ${v.estado||'sin estado'}`;details.append(summary);
-    const pre=document.createElement('pre');pre.style.whiteSpace='pre-wrap';pre.style.overflowWrap='anywhere';pre.textContent=(v.retos||[]).map(r=>`Reto ${r.numero}: ${r.enunciado}\nRespuestas: ${(r.respuestas||[]).join(', ')}\nIntentos: ${r.intentos||0} · Pistas: ${r.pistas||0} · Signos: ${(r.signos||[]).join(', ')}\nCorrecto: ${r.correcto?'Sí':'No'}`).join('\n\n')||'Aún no hay retos guardados.';details.append(pre);out.append(details);
+  const students=await getDocsFromServer(collection(db,'Alumnos'));
+  const records=new Map(students.docs.map(s=>[s.id,s.data()]));
+  let pilotNote='';
+  // Esta comprobación no sustituye la búsqueda general de los alumnos.
+  if(!records.has(PILOT_UID)){
+   try{
+    const pilot=await getDocFromServer(doc(db,'Alumnos',PILOT_UID));
+    if(pilot.exists()){
+     records.set(pilot.id,pilot.data());
+     pilotNote='El perfil piloto existe por lectura directa, pero no apareció en la consulta general de Alumnos.';
+    }else{
+     pilotNote='El servidor tampoco encontró el perfil piloto mediante lectura directa.';
+    }
+   }catch(error){pilotNote='No se pudo comprobar el perfil piloto directamente: '+(error.code||error.message);}
+  }
+  if(request!==historyRequest)return;
+  out.replaceChildren();
+  const heading=document.createElement('p');heading.textContent=`Perfiles encontrados en Alumnos: ${students.size}.`;
+  out.append(heading);
+  if(pilotNote){const note=document.createElement('p');note.className='warning';note.textContent=pilotNote;out.append(note);}
+  const sorted=[...records.entries()].sort((a,b)=>String(a[1].grupo||'').localeCompare(String(b[1].grupo||''))||String(a[1].numeroLista||'').localeCompare(String(b[1].numeroLista||'')));
+  let count=0,errors=0;
+  for(const [uid,data] of sorted){
+   let sessions;
+   try{sessions=await getDocsFromServer(collection(db,'Alumnos',uid,'Sesiones'));}
+   catch(error){errors++;const warning=document.createElement('p');warning.className='warning';warning.textContent=`No se pudo leer Sesiones de ${data.grupo||'?'}-${data.numeroLista||'?'}: ${error.code||error.message}`;out.append(warning);continue;}
+   if(request!==historyRequest)return;
+   for(const snap of sessions.docs){
+    count++;const v=snap.data();const details=document.createElement('details');
+    details.style.cssText='padding:12px;border:1px solid #d8e4df;border-radius:10px;margin:9px 0';
+    const summary=document.createElement('summary');summary.style.cursor='pointer';
+    const when=v.fecha?.toDate?.()?.toLocaleString('es-MX')||'Fecha pendiente';
+    summary.textContent=`Grupo ${data.grupo||v.grupo||'?'} · Lista ${data.numeroLista||v.numeroLista||'?'} · ${when} · ${v.estado||'sin estado'} · ${(v.retos||[]).length} retos`;
+    details.append(summary);
+    const pre=document.createElement('pre');pre.style.whiteSpace='pre-wrap';pre.style.overflowWrap='anywhere';
+    pre.textContent=(v.retos||[]).map(r=>`Reto ${r.numero}: ${r.enunciado}\nRespuestas: ${(r.respuestas||[]).join(', ')}\nIntentos: ${r.intentos||0} · Pistas: ${r.pistas||0} · Signos: ${(r.signos||[]).join(', ')}\nCorrecto: ${r.correcto?'Sí':'No'}`).join('\n\n')||'Sesión creada, sin retos guardados todavía.';
+    details.append(pre);out.append(details);
    }
   }
-  if(!count)out.textContent=`${students.size} alumnos registrados. Todavía no hay sesiones guardadas.`;
- }catch(e){out.textContent='Error al consultar historial: '+(e.code||e.message);}
+  if(request!==historyRequest)return;
+  const result=document.createElement('p');result.style.fontWeight='700';
+  result.textContent=count?`${count} sesión(es) encontradas en Firebase.`:errors?'No se pudo confirmar el historial completo: hubo errores de lectura.':'No se encontraron sesiones en los perfiles consultados en el servidor.';
+  out.prepend(result);
+ }catch(e){if(request===historyRequest)out.textContent='No fue posible consultar Alumnos en el servidor: '+(e.code||e.message);}
 }
 byId('refreshSessions').onclick=loadHistory;
 onAuthStateChanged(auth,next=>{void displayUser(next);},e=>{status('Error de autenticación: '+(e.code||e.message));});
 </script></body></html>
-```
