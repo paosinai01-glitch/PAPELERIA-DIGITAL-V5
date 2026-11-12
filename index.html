@@ -74,7 +74,7 @@ $('route').addEventListener('change',()=>{renderCart()});$('start').onclick=star
 <script type="module">
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js';
 import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js';
-import {getFirestore,doc,getDoc,getDocFromServer,collection,addDoc,updateDoc,getDocs,serverTimestamp} from 'https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js';
+import {getFirestore,collection,addDoc,updateDoc,getDocs,serverTimestamp} from 'https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js';
 const firebaseConfig={apiKey:'AIzaSyA36PzVwed30aDC0KZQDefHJmT63GiOle4',authDomain:'mi-tiendita-digital-v4.firebaseapp.com',projectId:'mi-tiendita-digital-v4',storageBucket:'mi-tiendita-digital-v4.firebasestorage.app',messagingSenderId:'395051599416',appId:'1:395051599416:web:5a696e57464f4223e588cd'};
 const DOCENTE_UID='yhU8ZSQdGlPJweCv3ByoSnnfxL33';
 const DOMAIN='alumnos.example.com';
@@ -96,40 +96,26 @@ async function displayUser(next){
  if(next.uid===DOCENTE_UID){profile={rol:'docente',activo:true};status('Acceso docente autorizado.');byId('teacherPanel').classList.remove('hide');void loadHistory();return;}
  const identity=studentFromEmail(next.email);
  if(!identity){status('Esta cuenta no corresponde a los grupos autorizados.');return;}
- status('Verificando tu registro escolar…');
- try{
-  const profileRef=doc(db,'Alumnos',next.uid);
-  // Primero se intenta la lectura normal del SDK; si devuelve "no existe",
-  // se confirma con una segunda lectura explícita del servidor.
-  let snap=await getDoc(profileRef);
-  if(check!==authCheck)return;
-  if(!snap.exists()){
-   snap=await getDocFromServer(profileRef);
-   if(check!==authCheck)return;
-  }
-  if(!snap.exists()){
-   console.warn('Perfil escolar no encontrado en Firestore',{
-    proyecto:app.options.projectId,baseDeDatos:'(default)',
-    ruta:profileRef.path,uidAutenticado:next.uid,
-    emailAutenticado:next.email,origen:snap.metadata.fromCache?'caché':'servidor'
-   });
-   throw Error('La consulta a Firestore respondió que el perfil no existe. No se habilitó el acceso. Comprueba el aviso de diagnóstico en la consola; no es necesario crear otra cuenta.');
-  }
-  const data=snap.data();
-  if(data.activo!==true||data.rol!=='alumno'||data.grupo!==identity.grupo||data.numeroLista!==identity.numeroLista)
-   throw Error('Tu registro escolar no coincide con tu cuenta. Comunícalo a la docente.');
-  profile={rol:'alumno',activo:true,grupo:data.grupo,numeroLista:data.numeroLista};
-  status(`Acceso autorizado: grupo ${profile.grupo}, lista ${profile.numeroLista}.`);
-  byId('studentApp').classList.remove('hide');
- }catch(e){if(check===authCheck)status('No se pudo validar tu registro: '+(e.code||e.message));}
+ // El correo de Firebase Authentication identifica el grupo y el número de lista.
+ // No se consulta el perfil aquí: Firestore valida el documento activo y el rol
+ // al crear/actualizar sesiones mediante las reglas publicadas.
+ profile={rol:'alumno',activo:true,grupo:identity.grupo,numeroLista:identity.numeroLista};
+ status(`Acceso autenticado: grupo ${profile.grupo}, lista ${profile.numeroLista}. Los permisos de registro se comprobarán al iniciar los retos.`);
+ byId('studentApp').classList.remove('hide');
 }
 window.v4Ready=()=>!!(user&&profile?.rol==='alumno'&&!sessionOpen);
 window.v4HasOpenSession=()=>sessionOpen;
 window.v4CreateSession=async initial=>{
  if(!window.v4Ready())throw Error('Debes iniciar sesión como alumno y no tener otra sesión abierta.');
  sessionRetos=initial;
- const ref=await addDoc(collection(db,'Alumnos',user.uid,'Sesiones'),{numeroLista:profile.numeroLista,grupo:profile.grupo,fecha:serverTimestamp(),retos:[],estado:'en_progreso'});
- sessionRef=ref;sessionOpen=true;
+ try{
+  const ref=await addDoc(collection(db,'Alumnos',user.uid,'Sesiones'),{numeroLista:profile.numeroLista,grupo:profile.grupo,fecha:serverTimestamp(),retos:[],estado:'en_progreso'});
+  sessionRef=ref;sessionOpen=true;
+ }catch(e){
+  sessionRetos=[];
+  if(e.code==='permission-denied')throw Error('Firebase no autorizó guardar la sesión. Revisa que las reglas de Firestore validen el perfil activo del alumno en Alumnos y permitan crear Sesiones.');
+  throw e;
+ }
 };
 window.v4RecordAnswer=(i,answer)=>{const t=sessionRetos[i];if(t){t.respuestas.push(String(answer));t.intentos=t.respuestas.length;}};
 window.v4RecordHint=i=>{if(sessionRetos[i])sessionRetos[i].pistas++;};
@@ -179,3 +165,4 @@ async function loadHistory(){
 byId('refreshSessions').onclick=loadHistory;
 onAuthStateChanged(auth,next=>{void displayUser(next);},e=>{status('Error de autenticación: '+(e.code||e.message));});
 </script></body></html>
+```
