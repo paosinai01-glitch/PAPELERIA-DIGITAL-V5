@@ -1,11 +1,64 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#176b57"><title>Papelería Digital · Versión 5</title>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#800c2e"><title>Papelería Digital ETI 96 · Retos Matemáticos</title>
 <style>
 :root{font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:#1b302b;background:#f3f7f5}*{box-sizing:border-box}body{margin:0}header{background:#176b57;color:#fff;padding:22px 15px;text-align:center}header h1{margin:0;font-size:clamp(1.6rem,5vw,2.3rem)}header p{margin:7px 0 0}main{max-width:980px;margin:auto;padding:14px}.card{background:white;border:1px solid #d8e4df;border-radius:17px;padding:18px;margin:14px 0;box-shadow:0 2px 8px #123b2b0b}h2{margin:0 0 13px;font-size:1.22rem}h3{margin:9px 0}button,input,select{font:inherit}button{background:#176b57;color:white;border:0;border-radius:11px;padding:11px 14px;font-weight:650;cursor:pointer;min-height:44px}button.secondary{background:#e4f1ea;color:#135a45}button.danger{background:#a13939}button:disabled{opacity:.5;cursor:not-allowed}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #e4a72b;outline-offset:2px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px}.product{border:1px solid #dce7e1;border-radius:14px;padding:12px;text-align:center;background:#fbfdfc}.emoji{font-size:2.6rem}.product-photo{display:block;width:100%;height:135px;object-fit:cover;border-radius:10px;margin-bottom:10px;background:#f1f3f6}.product{overflow:hidden}.challenge-cart{border:2px solid #a8cdb9;border-radius:14px;background:#f7fcf9;padding:14px;margin:12px 0}.challenge-cart h3{margin:0 0 6px}.challenge-cart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}.challenge-cart-item{display:flex;align-items:center;gap:9px;padding:9px;background:white;border:1px solid #dce7e1;border-radius:10px}.challenge-cart-item img{width:56px;height:56px;object-fit:cover;border-radius:7px;flex-shrink:0}.challenge-cart-item div{font-size:.88rem;line-height:1.35}.challenge-cart-item strong{display:block}.product strong{display:block;min-height:2.4em}.price{font-weight:750;margin:6px 0}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.space{justify-content:space-between}.muted{color:#4b645b}.pill{display:inline-block;border-radius:99px;padding:6px 10px;background:#e6f3ec;color:#165b46;font-weight:700}.budget{background:#e7f4ed;border-color:#93c5a7}.budget strong{font-size:1.5rem}.quantity{width:72px;padding:10px;border:1px solid #9bb5a7;border-radius:10px}select,.answer{padding:11px;border:1px solid #8ba99c;border-radius:10px;max-width:100%;background:#fff}.answer{width:180px}.cartline{padding:9px 0;border-bottom:1px solid #e3ece7}.hint{background:#fff8e9;border:1px solid #f0d79b;border-radius:12px;padding:14px;margin-top:12px}.task{background:#f0f7f3;border-radius:12px;padding:16px;margin:12px 0;font-size:1.05rem}.status{min-height:1.6em;font-weight:650;margin-top:10px}.success{color:#176b57}.warning{color:#a13939}.sign{font-size:1.45rem;min-width:64px}.sign[aria-pressed=true]{background:#f0ad36;color:#1b302b;outline:2px solid #a76a00}.hide{display:none!important}.progress{height:12px;background:#dcebe3;border-radius:30px;overflow:hidden}.progress span{display:block;height:100%;background:#1c8765;transition:width .2s}.small{font-size:.9rem}footer{text-align:center;padding:20px;color:#4b645b}@media(max-width:480px){.card{padding:14px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.product button{width:100%}}
+
+/* Identidad visual ETI 96: solo presentación, sin alterar Firebase ni retos */
+:root{color:#42192a;background:#fff7ed}
+body{background:radial-gradient(circle at 12% 12%,#ffe7d9 0,transparent 28%),linear-gradient(135deg,#fff8ef,#fce9e4 60%,#fff8ef);color:#42192a}
+header.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+main{max-width:1200px;padding:0 18px 26px}
+.eti-hero{position:relative;isolation:isolate;max-width:1160px;margin:0 auto 22px;aspect-ratio:1648/1020;background:#f7e4d9;border-radius:0 0 24px 24px;overflow:hidden;box-shadow:0 12px 36px #540a2d28}
+.eti-hero-image{position:absolute;inset:0;background:url("portada_eti96.webp") top center/100% auto no-repeat;z-index:-1}
+#loginCard{position:absolute;left:26%;width:48%;top:46%;margin:0;min-height:43%;padding:15px 22px 12px;background:#fffaf3f7;border:3px solid #8c1237;border-radius:28px;box-shadow:0 8px 18px #650b2b25;text-align:center;overflow:auto;max-height:51%}
+#loginCard h2{font-size:clamp(1.15rem,2.1vw,1.75rem);color:#6e0730;margin:0 0 5px}
+#loginCard .login-help{font-size:.85rem;margin:0 0 8px;color:#65384a}
+#loginCard .row{justify-content:center}
+#loginCard label{color:#63132e;font-weight:700}
+#loginCard .row:has(input[name="tipoAcceso"]){margin:6px auto 10px;gap:18px}
+#loginCard #studentLoginFields,#loginCard #teacherLoginFields{display:grid;grid-template-columns:1fr;gap:4px;text-align:left;max-width:360px;margin:auto}
+#loginCard input:not([type=radio]),#loginCard select{width:100%;border:2px solid #9b3452;border-radius:14px;padding:9px 12px;background:#fff;font-size:1rem;min-height:40px}
+#loginCard p:has(#loginPassword){max-width:360px;margin:8px auto;text-align:left}
+#loginCard #loginButton{min-width:175px}
+#loginCard #loginStatus{font-size:.84rem;margin:7px auto 0;max-width:430px}
+.card{border:1px solid #ead0c9;border-radius:20px;box-shadow:0 5px 18px #6b143016;background:#fffdfa}
+#teacherPanel{border-top:6px solid #850d35}
+#studentApp .card{border-top:5px solid #9e1d44}
+h2,h3{color:#791235}
+button{background:linear-gradient(180deg,#ae1648,#78082f);color:white;border-radius:13px;box-shadow:0 3px 0 #54062122}
+button.secondary{background:#f8e5e9;color:#7e1238}
+button.danger{background:#ad3140}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #edb342}
+select,.answer,.quantity{border-color:#bd8c9b}
+.product{background:#fff8f3;border-color:#eed6d3;transition:transform .15s,box-shadow .15s}
+.product:hover{transform:translateY(-2px);box-shadow:0 6px 18px #6b143022}
+.price{color:#851036}
+.budget{background:#fff0da;border-color:#e6b96e}
+.budget strong{color:#7e0b34}
+.pill{background:#f9e3eb;color:#84143c}
+.challenge-cart{background:#fff7f0;border-color:#e5bac7}
+.challenge-cart-item{border-color:#ecd5d7}
+.task{background:#fff1e6;border-left:5px solid #ae2350}
+.hint{background:#fff8dd}
+.progress{background:#f5dce5}
+.progress span{background:#a71748}
+.success{color:#176b57}.warning{color:#a13939}
+.sign[aria-pressed=true]{background:#f5bd45;color:#4b2031}
+footer{color:#7b3650}
+@media(max-width:760px){
+ main{padding:0 10px 20px}
+ .eti-hero{aspect-ratio:auto;min-height:0;overflow:visible;background:#fff8f1;border-radius:0 0 20px 20px}
+ .eti-hero-image{position:relative;z-index:auto;display:block;aspect-ratio:1648/928;background-size:100% auto;border-radius:0}
+ #loginCard{position:relative;top:auto;left:auto;width:calc(100% - 22px);max-height:none;min-height:0;margin:-5px 11px 14px;padding:18px 14px;overflow:visible;background:#fffaf5}
+ #loginCard h2{font-size:1.5rem}
+ #loginCard .login-help{font-size:.92rem}
+}
+
 </style></head><body>
-<header><h1>✏️ Papelería Digital</h1><p>Tu papelería escolar · Elige, calcula y aprende</p></header>
+<header class="sr-only"><h1>Papelería Digital ETI 96</h1><p>Retos Matemáticos</p></header>
 <main>
-<section class="card" id="loginCard"><h2>Acceso a Papelería Digital</h2><p>Estudiantes: elige tu grupo, número de lista y escribe tu contraseña. Docente: utiliza tu correo.</p><div class="row"><label><input type="radio" name="tipoAcceso" value="alumno" checked> Alumno</label><label><input type="radio" name="tipoAcceso" value="docente"> Docente</label></div><div id="studentLoginFields"><label for="loginGroup">Grupo</label> <select id="loginGroup"><option value="2J">2.º J</option><option value="2L">2.º L</option></select> <label for="loginNumber">Número de lista (01 a 55)</label> <input id="loginNumber" type="number" min="1" max="55" step="1" inputmode="numeric" placeholder="Ej. 05"></div><div id="teacherLoginFields" class="hide"><label for="loginEmail">Correo docente</label> <input id="loginEmail" type="email" autocomplete="username" placeholder="correo@ejemplo.com"></div><p><label for="loginPassword">Contraseña</label> <input id="loginPassword" type="password" autocomplete="current-password"></p><div class="row"><button id="loginButton" type="button">Entrar</button><button id="logoutButton" type="button" class="secondary hide">Cerrar sesión</button></div><p id="loginStatus" role="status"></p></section>
+<div class="eti-hero" id="etiHero"><div class="eti-hero-image" role="img" aria-label="Papelería Digital ETI 96, ajolote con lápiz y calculadora y fondo ilustrado de papelería"></div>
+<section class="card" id="loginCard"><h2>¡Inicia sesión!</h2><p class="login-help">Elige cómo ingresar a tu papelería.</p><div class="row"><label><input type="radio" name="tipoAcceso" value="alumno" checked> Alumno</label><label><input type="radio" name="tipoAcceso" value="docente"> Docente</label></div><div id="studentLoginFields"><label for="loginGroup">Grupo</label> <select id="loginGroup"><option value="2J">2.º J</option><option value="2L">2.º L</option></select> <label for="loginNumber">Número de lista (01 a 55)</label> <input id="loginNumber" type="number" min="1" max="55" step="1" inputmode="numeric" placeholder="Ej. 05"></div><div id="teacherLoginFields" class="hide"><label for="loginEmail">Correo docente</label> <input id="loginEmail" type="email" autocomplete="username" placeholder="correo@ejemplo.com"></div><p><label for="loginPassword">Contraseña</label> <input id="loginPassword" type="password" autocomplete="current-password"></p><div class="row"><button id="loginButton" type="button">Entrar</button><button id="logoutButton" type="button" class="secondary hide">Cerrar sesión</button></div><p id="loginStatus" role="status"></p></section></div>
 <section class="card hide" id="teacherPanel"><h2>Panel docente · Historial</h2><p>Consulta las sesiones de estudiantes registrados. Solo disponible para cuentas con rol docente.</p><button id="refreshSessions" type="button">Actualizar historial</button><div id="sessionsList" aria-live="polite"></div></section>
 <div id="studentApp" class="hide">
 <section class="card" id="setup"><h2>1. Elige tu ruta matemática</h2><label for="route">Ruta de aprendizaje</label> <select id="route"><option value="a">Ruta A · Suma y resta</option><option value="b">Ruta B · Multiplicación y división</option></select><p class="muted small">Puedes trabajar con papel y lápiz. La tiendita no resolverá las operaciones por ti.</p></section>
