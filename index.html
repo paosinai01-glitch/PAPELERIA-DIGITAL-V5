@@ -70,6 +70,22 @@ async function next(){if(!locked)return;try{await window.v4SaveSession(index===4
 function again(){if(balance<=0){$('finish').querySelector('p').textContent='Ya utilizaste todo tu presupuesto. Puedes comenzar de nuevo.';return}$('finish').classList.add('hide');$('setup').classList.remove('hide');$('store').classList.remove('hide');$('thinking').classList.remove('hide');$('cartSection').classList.remove('hide');$('store').scrollIntoView({behavior:'smooth',block:'start'})}
 $('route').addEventListener('change',()=>{renderCart()});$('start').onclick=start;$('clear').onclick=()=>{cart={};renderCart()};$('check').onclick=check;$('answer').addEventListener('keydown',e=>{if(e.key==='Enter')check()});$('hintButton').onclick=()=>{$('hint').classList.toggle('hide');hints++;if(window.v4RecordHint)window.v4RecordHint(index);};$('next').onclick=next;$('again').onclick=again;$('reset').onclick=()=>{if(window.v4HasOpenSession && window.v4HasOpenSession()){alert('Termina los cinco retos antes de reiniciar para conservar el registro.');return;}balance=200;purchases=0;cart={};updateBalance();renderCart();$('finish').classList.add('hide');$('setup').classList.remove('hide');$('store').classList.remove('hide');$('thinking').classList.remove('hide');$('cartSection').classList.remove('hide');$('store').scrollIntoView({behavior:'smooth'})};renderProducts();renderCart();updateBalance();
 </script>
+<script>
+// Acceso docente/alumno disponible aunque Firebase tarde en cargar.
+(function(){
+  const radios=document.querySelectorAll('input[name="tipoAcceso"]');
+  const student=document.getElementById('studentLoginFields');
+  const teacher=document.getElementById('teacherLoginFields');
+  function updateAccess(){
+    const selected=document.querySelector('input[name="tipoAcceso"]:checked');
+    const teacherMode=selected && selected.value==='docente';
+    student.classList.toggle('hide',teacherMode);
+    teacher.classList.toggle('hide',!teacherMode);
+  }
+  radios.forEach(radio=>radio.addEventListener('change',updateAccess));
+  updateAccess();
+})();
+</script>
 <script type="module">
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js';
 import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js';
@@ -84,7 +100,7 @@ const status=s=>byId('loginStatus').textContent=s;
 const isTeacher=()=>document.querySelector('input[name="tipoAcceso"]:checked').value==='docente';
 function accountEmail(group,number){return `${group.toLowerCase()}-${number}@${DOMAIN}`;}
 function studentFromEmail(email){const match=/^(2j|2l)-(0[1-9]|[1-4][0-9]|5[0-5])@alumnos\.example\.com$/i.exec(email||'');return match?{rol:'alumno',activo:true,grupo:match[1].toUpperCase(),numeroLista:match[2]}:null;}
-document.querySelectorAll('input[name="tipoAcceso"]').forEach(x=>x.addEventListener('change',()=>{byId('studentLoginFields').classList.toggle('hide',isTeacher());byId('teacherLoginFields').classList.toggle('hide',!isTeacher());}));
+// El selector de acceso se gestiona en un script independiente de Firebase.
 let authCheck=0;
 async function displayUser(next){
  const check=++authCheck;
