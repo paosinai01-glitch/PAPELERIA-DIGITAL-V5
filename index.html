@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#176b57"><title>Papelería Digital · Papelería V4</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:#1b302b;background:#f3f7f5}*{box-sizing:border-box}body{margin:0}header{background:#176b57;color:#fff;padding:22px 15px;text-align:center}header h1{margin:0;font-size:clamp(1.6rem,5vw,2.3rem)}header p{margin:7px 0 0}main{max-width:980px;margin:auto;padding:14px}.card{background:white;border:1px solid #d8e4df;border-radius:17px;padding:18px;margin:14px 0;box-shadow:0 2px 8px #123b2b0b}h2{margin:0 0 13px;font-size:1.22rem}h3{margin:9px 0}button,input,select{font:inherit}button{background:#176b57;color:white;border:0;border-radius:11px;padding:11px 14px;font-weight:650;cursor:pointer;min-height:44px}button.secondary{background:#e4f1ea;color:#135a45}button.danger{background:#a13939}button:disabled{opacity:.5;cursor:not-allowed}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #e4a72b;outline-offset:2px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px}.product{border:1px solid #dce7e1;border-radius:14px;padding:12px;text-align:center;background:#fbfdfc}.emoji{font-size:2.6rem}.product-photo{display:block;width:100%;height:135px;object-fit:cover;border-radius:10px;margin-bottom:10px;background:#f1f3f6}.product{overflow:hidden}.challenge-cart{border:2px solid #a8cdb9;border-radius:14px;background:#f7fcf9;padding:14px;margin:12px 0}.challenge-cart h3{margin:0 0 6px}.challenge-cart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}.challenge-cart-item{display:flex;align-items:center;gap:9px;padding:9px;background:white;border:1px solid #dce7e1;border-radius:10px}.challenge-cart-item img{width:56px;height:56px;object-fit:cover;border-radius:7px;flex-shrink:0}.challenge-cart-item div{font-size:.88rem;line-height:1.35}.challenge-cart-item strong{display:block}.product strong{display:block;min-height:2.4em}.price{font-weight:750;margin:6px 0}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.space{justify-content:space-between}.muted{color:#4b645b}.pill{display:inline-block;border-radius:99px;padding:6px 10px;background:#e6f3ec;color:#165b46;font-weight:700}.budget{background:#e7f4ed;border-color:#93c5a7}.budget strong{font-size:1.5rem}.quantity{width:72px;padding:10px;border:1px solid #9bb5a7;border-radius:10px}select,.answer{padding:11px;border:1px solid #8ba99c;border-radius:10px;max-width:100%;background:#fff}.answer{width:180px}.cartline{padding:9px 0;border-bottom:1px solid #e3ece7}.hint{background:#fff8e9;border:1px solid #f0d79b;border-radius:12px;padding:14px;margin-top:12px}.task{background:#f0f7f3;border-radius:12px;padding:16px;margin:12px 0;font-size:1.05rem}.status{min-height:1.6em;font-weight:650;margin-top:10px}.success{color:#176b57}.warning{color:#a13939}.sign{font-size:1.45rem;min-width:64px}.sign[aria-pressed=true]{background:#f0ad36;color:#1b302b;outline:2px solid #a76a00}.hide{display:none!important}.progress{height:12px;background:#dcebe3;border-radius:30px;overflow:hidden}.progress span{display:block;height:100%;background:#1c8765;transition:width .2s}.small{font-size:.9rem}footer{text-align:center;padding:20px;color:#4b645b}@media(max-width:480px){.card{padding:14px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.product button{width:100%}}
+</style></head><body>
+<header><h1>✏️ Papelería Digital</h1><p>Tu papelería escolar · Elige, calcula y aprende</p></header>
+<main>
+<section class="card" id="loginCard"><h2>Acceso a Papelería Digital</h2><p>Estudiantes: elige tu grupo, número de lista y escribe tu contraseña. Docente: utiliza tu correo.</p><div class="row"><label><input type="radio" name="tipoAcceso" value="alumno" checked> Alumno</label><label><input type="radio" name="tipoAcceso" value="docente"> Docente</label></div><div id="studentLoginFields"><label for="loginGroup">Grupo</label> <select id="loginGroup"><option value="2J">2.º J</option><option value="2L">2.º L</option></select> <label for="loginNumber">Número de lista (01 a 55)</label> <input id="loginNumber" type="number" min="1" max="55" step="1" inputmode="numeric" placeholder="Ej. 05"></div><div id="teacherLoginFields" class="hide"><label for="loginEmail">Correo docente</label> <input id="loginEmail" type="email" autocomplete="username" placeholder="correo@ejemplo.com"></div><p><label for="loginPassword">Contraseña</label> <input id="loginPassword" type="password" autocomplete="current-password"></p><div class="row"><button id="loginButton" type="button">Entrar</button><button id="logoutButton" type="button" class="secondary hide">Cerrar sesión</button></div><p id="loginStatus" role="status"></p></section>
+<section class="card hide" id="teacherPanel"><h2>Panel docente · Historial</h2><p>Consulta las sesiones de estudiantes registrados. Solo disponible para cuentas con rol docente.</p><button id="refreshSessions" type="button">Actualizar historial</button><div id="sessionsList" aria-live="polite"></div></section>
+<div id="studentApp" class="hide">
+<section class="card" id="setup"><h2>1. Elige tu ruta matemática</h2><label for="route">Ruta de aprendizaje</label> <select id="route"><option value="a">Ruta A · Suma y resta</option><option value="b">Ruta B · Multiplicación y división</option></select><p class="muted small">Puedes trabajar con papel y lápiz. La tiendita no resolverá las operaciones por ti.</p></section>
+<section class="card budget" aria-live="polite"><div class="row space"><div><div>💰 Dinero disponible</div><strong id="balance">$200</strong></div><span class="pill" id="purchaseCount">0 compras completadas</span></div><p class="small">Presupuesto ficticio. Tu saldo cambia al terminar correctamente los cinco retos de cada compra.</p></section>
+<section class="card" id="store"><h2>2. Escoge artículos de papelería</h2><p class="muted">Selecciona productos y cantidades. Las fotografías son ilustrativas; calcula tú cuánto cuestan.</p><div class="grid" id="products"></div></section>
+<section class="card" id="thinking"><h2>3. Piensa qué tienes que hacer o qué vas a hacer</h2><p>Antes de resolver, observa los productos que elegiste y piensa: ¿qué necesitas calcular?, ¿qué operación te ayudará?, ¿cómo puedes comprobar tu respuesta?</p><p class="muted small">Puedes usar tu cuaderno para organizar tus ideas y procedimientos.</p></section>
+<section class="card" id="cartSection"><h2>4. Revisa tu carrito</h2><div id="cart" aria-live="polite">Tu carrito está vacío.</div><p class="muted small">No mostramos el total: tendrás que calcularlo en los retos.</p><div class="row"><button id="start" disabled>Iniciar 5 retos</button><button id="clear" class="secondary">Vaciar carrito</button></div><p id="cartStatus" class="status" role="status"></p></section>
+<section class="card hide" id="challenge" aria-live="polite"><div class="row space"><h2>5. Resuelve tus retos</h2><span class="pill" id="counter">Reto 1 de 5</span></div><div class="progress" aria-label="Progreso de los retos"><span id="bar" style="width:0%"></span></div><aside id="challengeCart" class="challenge-cart" aria-label="Artículos seleccionados para estos retos"><h3>🛒 Tus artículos para resolver los retos</h3><p class="small muted">Consulta sus precios y cantidades en cualquier momento. Calcula tú el total.</p><div id="challengeCartItems" class="challenge-cart-grid"></div></aside><div id="task" class="task"></div><p class="muted small">Escribe tu procedimiento en tu cuaderno. No se muestra el resultado antes de responder.</p><label for="answer"><strong>Tu respuesta:</strong></label><div class="row"><input class="answer" id="answer" type="number" inputmode="decimal" step="any" placeholder="Escribe un número"><button id="check">Comprobar</button></div><div class="row" style="margin-top:10px"><button class="secondary" id="hintButton">💡 Necesito una pista</button></div><div id="hint" class="hint hide"><strong>¿Qué operación te ayuda?</strong><p id="hintQuestion"></p><div class="row" id="signs"></div><p class="status" id="signFeedback" role="status"></p></div><p id="feedback" class="status" role="status"></p><button id="next" class="hide">Siguiente reto →</button></section>
+<section class="card hide" id="finish"><h2>🎉 ¡Compra completada!</h2><p>Resolviste los cinco retos. Se descontó de tu presupuesto el costo de los productos.</p><p><strong>Dinero restante: <span id="finalBalance"></span></strong></p><button id="again">Hacer otra compra</button><button class="secondary" id="reset">Comenzar de nuevo con $200</button></section>
+<section class="card"><h2>Para la actividad en clase</h2><p class="small">Cada estudiante resuelve sus propias operaciones. Las pistas orientan la elección del signo, sin dar la respuesta numérica. Los intentos, las pistas y los signos elegidos se guardan en Firebase para que la docente pueda revisar el proceso. No escribas datos personales en las respuestas.</p></section>
+</div></main><footer>Papelería Digital · Recurso didáctico de aritmética · Versión 5</footer>
+<script>
+'use strict';
+const items=[
+{id:'cuaderno',name:'Cuaderno profesional',price:35,emoji:'📓',image:'cuaderno.webp'},
+{id:'lapiz',name:'Lápiz de grafito',price:8,emoji:'✏️',image:'lapiz.webp'},
+{id:'borrador',name:'Goma de borrar',price:7,emoji:'🧽',image:'borrador.webp'},
+{id:'colores',name:'Lápices de colores',price:48,emoji:'🖍️',image:'colores.webp'},
+{id:'pegamento',name:'Pegamento en barra',price:22,emoji:'🧴',image:'pegamento.webp'},
+{id:'pluma',name:'Lapicero',price:11,emoji:'🖊️',image:'pluma.webp'},
+{id:'marcador',name:'Resaltadores',price:18,emoji:'🖍️',image:'marcador.webp'},
+{id:'cartulina',name:'Notas adhesivas',price:6,emoji:'🗒️',image:'cartulina.webp'},
+{id:'tijeras',name:'Tijeras escolares',price:25,emoji:'✂️',image:'tijeras.webp'}];
+const $=id=>document.getElementById(id);let balance=200,purchases=0,cart={},tasks=[],index=0,attempts=0,hints=0,locked=false,receipt=0,route='a',purchaseLines=[];
+const money=n=>'$'+Number(n).toLocaleString('es-MX',{maximumFractionDigits:2});
+const cost=()=>Object.entries(cart).reduce((s,[id,q])=>s+items.find(p=>p.id===id).price*q,0);
+function renderProducts(){ $('products').innerHTML='';items.forEach(p=>{const el=document.createElement('div');el.className='product';el.innerHTML=`<img class="product-photo" src="imagenes/${p.image}" alt="Fotografía de ${p.name.toLowerCase()}" loading="lazy"><strong>${p.name}</strong><div class="price">${money(p.price)} c/u</div><label class="small" for="qty-${p.id}">Cantidad</label><div class="row" style="justify-content:center;margin:8px 0"><input id="qty-${p.id}" class="quantity" type="number" min="1" max="30" value="1" inputmode="numeric"></div><button type="button">Agregar</button>`;el.querySelector('button').addEventListener('click',()=>{const q=Number(el.querySelector('input').value);if(!Number.isInteger(q)||q<1||q>30){$('cartStatus').textContent='Elige una cantidad entera entre 1 y 30.';return;}cart[p.id]=(cart[p.id]||0)+q;renderCart()});$('products').append(el)})}
+function renderCart(){const lines=Object.entries(cart);$('cart').innerHTML='';if(!lines.length){$('cart').textContent='Tu carrito está vacío.'}else{lines.forEach(([id,q])=>{const p=items.find(x=>x.id===id);const el=document.createElement('div');el.className='row space cartline';const label=document.createElement('span');label.textContent=`${p.name} · ${q} × ${money(p.price)} c/u`;const remove=document.createElement('button');remove.className='secondary';remove.textContent='Quitar';remove.setAttribute('aria-label','Quitar '+p.name);remove.onclick=()=>{delete cart[id];renderCart()};el.append(label,remove);$('cart').append(el)})}$('start').disabled=!lines.length;$('cartStatus').textContent=''}
+function renderChallengeCart(){
+ const target=$('challengeCartItems');target.replaceChildren();
+ purchaseLines.forEach(([id,q])=>{
+  const p=items.find(x=>x.id===id);if(!p)return;
+  const card=document.createElement('div');card.className='challenge-cart-item';
+  const photo=document.createElement('img');photo.src='imagenes/'+p.image;photo.alt=p.name;photo.loading='eager';
+  const details=document.createElement('div');
+  const name=document.createElement('strong');name.textContent=p.name;
+  const qty=document.createElement('span');qty.textContent=`Cantidad: ${q} · ${money(p.price)} c/u`;
+  details.append(name,qty);card.append(photo,details);target.append(card);
+ });
+}
+function updateBalance(){$('balance').textContent=money(balance);$('purchaseCount').textContent=purchases+' '+(purchases===1?'compra completada':'compras completadas')}
+const task=(text,value,sign,question,correctHint,wrongHint)=>({text,value,sign,question,correctHint,wrongHint});
+function makeTasks(){const lines=Object.entries(cart).map(([id,qty])=>({...items.find(p=>p.id===id),qty}));const total=cost();const first=lines[0];const last=lines[lines.length-1];const second=lines[1]||first;const q=first.qty;const unit=first.price;const remaining=balance-total;const paid=balance;const extra=items.find(p=>p.id!==first.id && p.price<=Math.max(remaining,0))||items.find(p=>p.id!==first.id);const compare=Math.abs(first.price-second.price);
+if(route==='a')return [
+ task(`¿Cuánto cuestan en total todos los artículos que pusiste en tu carrito?`,total,'+', '¿Para juntar los precios, qué signo usarías?','Sumar permite reunir las cantidades de los productos.','Piensa si necesitas juntar cantidades o quitar dinero.'),
+ task(`Tienes ${money(balance)} y tu compra cuesta lo que calculaste en el reto anterior. ¿Cuánto dinero te quedará?`,remaining,'-', 'Si gastas parte de tu dinero, ¿qué signo necesitas?','Restar ayuda a saber cuánto queda después de gastar.','¿Al comprar tienes más o menos dinero?'),
+ task(`Un ${first.name.toLowerCase()} cuesta ${money(first.price)} y un ${second.name.toLowerCase()} cuesta ${money(second.price)}. ¿Cuánto cuestan juntos, comprando una unidad de cada uno?`,first.price+second.price,'+','¿Cómo juntas los precios de dos artículos?','La suma permite reunir ambos precios.','¿Quieres juntar dos precios o encontrar una diferencia?'),
+ task(`Compara el precio de un ${first.name.toLowerCase()} (${money(first.price)}) con un ${second.name.toLowerCase()} (${money(second.price)}). ¿Cuántos pesos hay de diferencia?`,compare,'-','Para encontrar la diferencia entre dos precios, ¿qué signo eliges?','Restar permite comparar dos cantidades.','Busca cuánto separa al precio mayor del menor.'),
+ task(`Imagina que, además de tu carrito, compras un ${extra.name.toLowerCase()} de ${money(extra.price)}. ¿Cuánto costaría todo junto?`,total+extra.price,'+','Si agregas otro artículo a una compra, ¿qué signo usarías?','Sumar permite incorporar el nuevo artículo.','¿Estás añadiendo un producto o devolviéndolo?')];
+const split=2;const max=Math.floor(balance/unit);
+return [
+ task(`Compras ${q} unidad(es) de ${first.name.toLowerCase()} a ${money(unit)} cada una. ¿Cuánto cuestan en total?`,q*unit,'×','¿Qué signo ayuda a calcular el mismo precio varias veces?','Multiplicar sirve para calcular grupos iguales.','Piensa en repetir el mismo precio varias veces.'),
+ task(`Una caja contiene ${q*2} ${first.name.toLowerCase()}(s). Si los repartes en 2 grupos iguales, ¿cuántos habrá en cada grupo?`,q,'÷','¿Qué operación permite repartir en partes iguales?','Dividir permite repartir una cantidad en grupos iguales.','¿Estás juntando o repartiendo cantidades?'),
+ task(`En tu carrito hay varios artículos. Calcula el costo de cada tipo multiplicando precio por cantidad y después reúne esos costos. ¿Cuál es el total de la compra?`,total,'×','¿Cómo calculas primero el costo de varias unidades iguales?','Multiplica precio por cantidad y después suma los subtotales.','Primero encuentra el costo de cada grupo de artículos.'),
+ task(`Con ${money(balance)}, ¿cuántas unidades completas de ${first.name.toLowerCase()} de ${money(unit)} podrías comprar como máximo?`,max,'÷','¿Qué signo te ayuda a saber cuántas veces cabe un precio en tu presupuesto?','Divide el presupuesto entre el precio y toma solo unidades completas.','Piensa cuántos grupos del mismo precio caben en tu dinero.'),
+ task(`El costo total de tu carrito se reparte por igual entre ${split} personas. ¿Cuánto pagaría cada persona? Puedes escribir decimales.`,total/split,'÷','¿Qué operación permite compartir el costo en partes iguales?','Dividir sirve para repartir el costo total.','El total se reparte entre varias personas.')];
+}
+function showTask(){locked=false;attempts=0;$('counter').textContent=`Reto ${index+1} de 5`;$('bar').style.width=(index/5*100)+'%';$('task').textContent=tasks[index].text;$('answer').value='';$('answer').disabled=false;$('check').disabled=false;$('feedback').textContent='';$('hint').classList.add('hide');$('signFeedback').textContent='';$('next').classList.add('hide');$('hintButton').disabled=false;$('hintQuestion').textContent=tasks[index].question;const signs=$('signs');signs.innerHTML='';const ops=route==='a'?[['+','Sumar'],['-','Restar']]:[['×','Multiplicar'],['÷','Dividir']];ops.forEach(([sign,label])=>{const btn=document.createElement('button');btn.className='sign secondary';btn.textContent=sign+' '+label;btn.setAttribute('aria-pressed','false');btn.onclick=()=>{if(window.v4RecordSign)window.v4RecordSign(index,sign);[...signs.children].forEach(x=>x.setAttribute('aria-pressed','false'));btn.setAttribute('aria-pressed','true');$('signFeedback').textContent=sign===tasks[index].sign?'¡Bien! '+tasks[index].correctHint:tasks[index].wrongHint;$('signFeedback').className='status '+(sign===tasks[index].sign?'success':'warning')};signs.append(btn)});}
+async function start(){if(!window.v4Ready || !window.v4Ready()){alert('Primero inicia sesión.');return;} if(!Object.keys(cart).length)return;receipt=cost();if(receipt>balance){$('cartStatus').textContent='⚠️ No alcanza tu presupuesto para esta compra. Quita algunos artículos o reduce cantidades.';return}route=$('route').value;purchaseLines=Object.entries(cart);tasks=makeTasks();index=0;window.v4StartTasks=tasks.map((t,i)=>({numero:i+1,enunciado:t.text,respuestas:[],intentos:0,pistas:0,signos:[],correcto:false}));try{await window.v4CreateSession(window.v4StartTasks);}catch(e){alert('No se pudo iniciar el registro: '+e.message);return;}$('setup').classList.add('hide');$('store').classList.add('hide');$('cartSection').classList.add('hide');$('thinking').classList.add('hide');$('finish').classList.add('hide');$('challenge').classList.remove('hide');renderChallengeCart();showTask();$('challenge').scrollIntoView({behavior:'smooth',block:'start'})}
+function check(){if(locked)return;const raw=$('answer').value.trim();if(raw===''){ $('feedback').textContent='Escribe tu respuesta antes de comprobar.';$('feedback').className='status warning';return}const n=Number(raw);if(!Number.isFinite(n)){ $('feedback').textContent='Escribe un número válido.';return}attempts++;if(window.v4RecordAnswer)window.v4RecordAnswer(index,raw);if(Math.abs(n-tasks[index].value)<0.001){locked=true;if(window.v4MarkCorrect)window.v4MarkCorrect(index);$('feedback').textContent='✅ ¡Correcto! Has resuelto el reto. Puedes continuar.';$('feedback').className='status success';$('answer').disabled=true;$('check').disabled=true;$('next').textContent=index===4?'Finalizar compra ✓':'Siguiente reto →';$('next').classList.remove('hide')}else{$('feedback').textContent='Todavía no coincide. Revisa tu procedimiento o usa la pista; puedes volver a intentarlo.';$('feedback').className='status warning'}}
+async function next(){if(!locked)return;try{await window.v4SaveSession(index===4);}catch(e){alert('No se pudo guardar el avance: '+e.message);return;}if(index<4){index++;showTask();$('challenge').scrollIntoView({behavior:'smooth',block:'start'});return}balance-=receipt;purchases++;updateBalance();$('finalBalance').textContent=money(balance);$('bar').style.width='100%';$('challenge').classList.add('hide');$('finish').classList.remove('hide');$('finish').scrollIntoView({behavior:'smooth',block:'start'});cart={};renderCart()}
+function again(){if(balance<=0){$('finish').querySelector('p').textContent='Ya utilizaste todo tu presupuesto. Puedes comenzar de nuevo.';return}$('finish').classList.add('hide');$('setup').classList.remove('hide');$('store').classList.remove('hide');$('thinking').classList.remove('hide');$('cartSection').classList.remove('hide');$('store').scrollIntoView({behavior:'smooth',block:'start'})}
+$('route').addEventListener('change',()=>{renderCart()});$('start').onclick=start;$('clear').onclick=()=>{cart={};renderCart()};$('check').onclick=check;$('answer').addEventListener('keydown',e=>{if(e.key==='Enter')check()});$('hintButton').onclick=()=>{$('hint').classList.toggle('hide');hints++;if(window.v4RecordHint)window.v4RecordHint(index);};$('next').onclick=next;$('again').onclick=again;$('reset').onclick=()=>{if(window.v4HasOpenSession && window.v4HasOpenSession()){alert('Termina los cinco retos antes de reiniciar para conservar el registro.');return;}balance=200;purchases=0;cart={};updateBalance();renderCart();$('finish').classList.add('hide');$('setup').classList.remove('hide');$('store').classList.remove('hide');$('thinking').classList.remove('hide');$('cartSection').classList.remove('hide');$('store').scrollIntoView({behavior:'smooth'})};renderProducts();renderCart();updateBalance();
+</script>
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js';
+import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js';
+import {getFirestore,doc,getDocFromServer,collection,addDoc,updateDoc,getDocs,serverTimestamp} from 'https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js';
+const firebaseConfig={apiKey:'AIzaSyA36PzVwed30aDC0KZQDefHJmT63GiOle4',authDomain:'mi-tiendita-digital-v4.firebaseapp.com',projectId:'mi-tiendita-digital-v4',storageBucket:'mi-tiendita-digital-v4.firebasestorage.app',messagingSenderId:'395051599416',appId:'1:395051599416:web:5a696e57464f4223e588cd'};
+const DOCENTE_UID='yhU8ZSQdGlPJweCv3ByoSnnfxL33';
+const DOMAIN='alumnos.example.com';
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const byId=id=>document.getElementById(id);
+let user=null,profile=null,sessionRef=null,sessionRetos=[],sessionOpen=false;
+const status=s=>byId('loginStatus').textContent=s;
+const isTeacher=()=>document.querySelector('input[name="tipoAcceso"]:checked').value==='docente';
+function accountEmail(group,number){return `${group.toLowerCase()}-${number}@${DOMAIN}`;}
+function studentFromEmail(email){const match=/^(2j|2l)-(0[1-9]|[1-4][0-9]|5[0-5])@alumnos\.example\.com$/i.exec(email||'');return match?{rol:'alumno',activo:true,grupo:match[1].toUpperCase(),numeroLista:match[2]}:null;}
+document.querySelectorAll('input[name="tipoAcceso"]').forEach(x=>x.addEventListener('change',()=>{byId('studentLoginFields').classList.toggle('hide',isTeacher());byId('teacherLoginFields').classList.toggle('hide',!isTeacher());}));
+let authCheck=0;
+async function displayUser(next){
+ const check=++authCheck;
+ user=next;profile=null;sessionRef=null;sessionOpen=false;
+ byId('studentApp').classList.add('hide');byId('teacherPanel').classList.add('hide');
+ byId('logoutButton').classList.toggle('hide',!next);
+ if(!next){status('Inicia sesión para continuar.');return;}
+ if(next.uid===DOCENTE_UID){profile={rol:'docente',activo:true};status('Acceso docente autorizado.');byId('teacherPanel').classList.remove('hide');void loadHistory();return;}
+ const identity=studentFromEmail(next.email);
+ if(!identity){status('Esta cuenta no corresponde a los grupos autorizados.');return;}
+ status('Verificando tu registro escolar…');
+ try{
+  const snap=await getDocFromServer(doc(db,'Alumnos',next.uid));
+  if(check!==authCheck)return;
+  if(!snap.exists())throw Error('No se encontró tu registro escolar. Solicita a la docente que revise el alta de tu cuenta.');
+  const data=snap.data();
+  if(data.activo!==true||data.rol!=='alumno'||data.grupo!==identity.grupo||data.numeroLista!==identity.numeroLista)
+   throw Error('Tu registro escolar no coincide con tu cuenta. Comunícalo a la docente.');
+  profile={rol:'alumno',activo:true,grupo:data.grupo,numeroLista:data.numeroLista};
+  status(`Acceso autorizado: grupo ${profile.grupo}, lista ${profile.numeroLista}.`);
+  byId('studentApp').classList.remove('hide');
+ }catch(e){if(check===authCheck)status('No se pudo validar tu registro: '+(e.code||e.message));}
+}
+window.v4Ready=()=>!!(user&&profile?.rol==='alumno'&&!sessionOpen);
+window.v4HasOpenSession=()=>sessionOpen;
+window.v4CreateSession=async initial=>{
+ if(!window.v4Ready())throw Error('Debes iniciar sesión como alumno y no tener otra sesión abierta.');
+ sessionRetos=initial;
+ const ref=await addDoc(collection(db,'Alumnos',user.uid,'Sesiones'),{numeroLista:profile.numeroLista,grupo:profile.grupo,fecha:serverTimestamp(),retos:[],estado:'en_progreso'});
+ sessionRef=ref;sessionOpen=true;
+};
+window.v4RecordAnswer=(i,answer)=>{const t=sessionRetos[i];if(t){t.respuestas.push(String(answer));t.intentos=t.respuestas.length;}};
+window.v4RecordHint=i=>{if(sessionRetos[i])sessionRetos[i].pistas++;};
+window.v4RecordSign=(i,sign)=>{if(sessionRetos[i])sessionRetos[i].signos.push(sign);};
+window.v4MarkCorrect=i=>{if(sessionRetos[i])sessionRetos[i].correcto=true;};
+window.v4SaveSession=async finish=>{
+ if(!sessionRef||!sessionOpen)throw Error('No hay sesión abierta.');
+ const completed=sessionRetos.filter(x=>x.correcto).map(x=>({...x}));
+ if(finish&&completed.length!==5)throw Error('Faltan retos por completar.');
+ await updateDoc(sessionRef,{retos:completed,estado:finish?'finalizada':'en_progreso'});
+ if(finish){sessionOpen=false;sessionRef=null;}
+};
+byId('loginButton').onclick=async()=>{
+ const btn=byId('loginButton');btn.disabled=true;status('Iniciando sesión…');
+ try{
+  let email;
+  if(isTeacher())email=byId('loginEmail').value.trim();
+  else{
+   const n=Number(byId('loginNumber').value);
+   if(!Number.isInteger(n)||n<1||n>55)throw Error('El número de lista debe ser del 01 al 55.');
+   email=accountEmail(byId('loginGroup').value,String(n).padStart(2,'0'));
+  }
+  const password=byId('loginPassword').value;
+  if(!email||!password)throw Error('Completa tus datos de acceso.');
+  if(auth.currentUser)await signOut(auth);
+  const credential=await signInWithEmailAndPassword(auth,email,password);
+  byId('loginPassword').value='';await displayUser(credential.user);
+ }catch(e){status('No se pudo iniciar sesión: '+(e.code||e.message));}
+ finally{btn.disabled=false;}
+};
+byId('logoutButton').onclick=async()=>{if(sessionOpen){status('Termina los cinco retos antes de salir.');return;}await signOut(auth);};
+async function loadHistory(){
+ const out=byId('sessionsList');out.textContent='Cargando historial…';
+ try{
+  const students=await getDocs(collection(db,'Alumnos'));out.replaceChildren();let count=0;
+  const sorted=students.docs.sort((a,b)=>a.data().grupo.localeCompare(b.data().grupo)||a.data().numeroLista.localeCompare(b.data().numeroLista));
+  for(const student of sorted){const data=student.data();
+   const sessions=await getDocs(collection(db,'Alumnos',student.id,'Sesiones'));
+   for(const snap of sessions.docs){count++;const v=snap.data();const details=document.createElement('details');const summary=document.createElement('summary');const when=v.fecha?.toDate?.()?.toLocaleString('es-MX')||'Fecha pendiente';summary.textContent=`Grupo ${data.grupo} · Lista ${data.numeroLista} · ${when} · ${v.estado||'sin estado'}`;details.append(summary);
+    const pre=document.createElement('pre');pre.style.whiteSpace='pre-wrap';pre.style.overflowWrap='anywhere';pre.textContent=(v.retos||[]).map(r=>`Reto ${r.numero}: ${r.enunciado}\nRespuestas: ${(r.respuestas||[]).join(', ')}\nIntentos: ${r.intentos||0} · Pistas: ${r.pistas||0} · Signos: ${(r.signos||[]).join(', ')}\nCorrecto: ${r.correcto?'Sí':'No'}`).join('\n\n')||'Aún no hay retos guardados.';details.append(pre);out.append(details);
+   }
+  }
+  if(!count)out.textContent=`${students.size} alumnos registrados. Todavía no hay sesiones guardadas.`;
+ }catch(e){out.textContent='Error al consultar historial: '+(e.code||e.message);}
+}
+byId('refreshSessions').onclick=loadHistory;
+onAuthStateChanged(auth,next=>{void displayUser(next);});
+</script></body></html>
