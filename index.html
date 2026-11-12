@@ -270,19 +270,27 @@ function renderAnalytics(out, snapshots){
   const max=Math.max(1,...values);
   const ceiling=Math.max(1,Math.ceil(max));
   const pw=width-left-right,ph=height-top-bottom;
-  for(let tick=0;tick<=4;tick++){
-   const value=ceiling*tick/4,y=top+ph-(tick/4)*ph;
+  const tickStep=Math.max(1,Math.ceil(ceiling/5));
+  const axisMax=Math.ceil(ceiling/tickStep)*tickStep;
+  for(let value=0;value<=axisMax;value+=tickStep){
+   const y=top+ph-(value/axisMax)*ph;
    svg.append(el('line',{x1:left,y1:y,x2:width-right,y2:y,stroke:'#e0ebe5'}));
-   svg.append(el('text',{x:left-8,y:y+4,'text-anchor':'end','font-size':12,fill:'#466255'},Number.isInteger(value)?value:value.toFixed(1)));
+   svg.append(el('text',{x:left-8,y:y+4,'text-anchor':'end','font-size':12,fill:'#466255'},value));
   }
   const n=Math.max(1,labels.length),groupW=pw/n,barW=Math.min(36,groupW/(series.length+1));
   const colors=['#176b57','#e4a72b'];
   labels.forEach((label,i)=>{
    const x=left+(i+.5)*groupW;
-   svg.append(el('text',{x,y:height-32,'text-anchor':'middle','font-size':Math.min(12,Math.max(9,650/n)),fill:'#1b302b'},label));
+   const pieces=label.match(/^(\\d{2}\\/\\d{2}\\/\\d{2}) (\\d{2}:\\d{2})$/);
+   if(pieces){
+    svg.append(el('text',{x,y:height-39,'text-anchor':'middle','font-size':11,fill:'#1b302b'},pieces[1]));
+    svg.append(el('text',{x,y:height-24,'text-anchor':'middle','font-size':11,fill:'#466255'},pieces[2]));
+   }else{
+    svg.append(el('text',{x,y:height-32,'text-anchor':'middle','font-size':Math.min(12,Math.max(9,650/n)),fill:'#1b302b'},label));
+   }
    series.forEach((ser,j)=>{
     const v=Number(ser.values[i])||0;
-    const bh=v/ceiling*ph;
+    const bh=v/axisMax*ph;
     const bx=x-(series.length*barW)/2+j*barW;
     svg.append(el('rect',{x:bx,y:top+ph-bh,width:barW-3,height:bh,rx:3,fill:colors[j%colors.length]}));
     svg.append(el('text',{x:bx+(barW-3)/2,y:top+ph-bh-5,'text-anchor':'middle','font-size':11,fill:'#1b302b'},v));
@@ -322,7 +330,13 @@ function renderAnalytics(out, snapshots){
   chart('Selección de signos por reto',retos.map(r=>'Reto '+r.numero),[
    {name:'Signos seleccionados',values:retos.map(r=>Array.isArray(r.signos)?r.signos.length:0)}
   ]);
-  chart('Evolución entre sesiones',completed.map((_,i)=>'Sesión '+(i+1)),[
+  chart('Evolución entre sesiones',completed.map((sesion,i)=>{
+   const fecha=sesion.fecha?.toDate?.();
+   if(!fecha)return 'Sesión '+(i+1)+' (sin fecha)';
+   const dia=fecha.toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'2-digit'});
+   const hora=fecha.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',hour12:false});
+   return dia+' '+hora;
+  }),[
    {name:'Intentos totales',values:completed.map(s=>s.retos.reduce((sum,r)=>sum+(Number(r.intentos)||0),0))},
    {name:'Pistas totales',values:completed.map(s=>s.retos.reduce((sum,r)=>sum+(Number(r.pistas)||0),0))}
   ]);
